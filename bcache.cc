@@ -21,7 +21,7 @@
 #define LISTEN_BACKLOG 50
 
 #define handle_error(msg)                               \
-  do { perror(msg); exit(EXIT_FAILURE); } while (0)
+  do { perror(msg); goto restart; } while (0)
 
 int running=1;
 
@@ -86,7 +86,7 @@ void handle(int conn){
     auto narHash=info->narHash.to_string(nix::Base32,true);
     auto narHash2=narHash.substr(7);
     // res.append("URL: nar/"+hashPart+"-"+narHash2+".nar\n");
-    res.append("URL: nar/"+hashPart+".nar\n");
+    res.append("URL: nar/"+hashPart+"-"+narHash2+".nar\n");
     res.append("Compression: none\n");
     res.append("NarHash: "+narHash+"\n");
     auto narSize=std::to_string(info->narSize);
@@ -113,7 +113,9 @@ void handle(int conn){
     std::string secretKey;
     char *keyPath = getenv("NIX_SECRET_KEY_FILE");
     if (keyPath) {
-      boost::filesystem::load_string_file(keyPath,secretKey);
+      try{
+        boost::filesystem::load_string_file(keyPath,secretKey);
+      }catch(const std::exception &ex){}
     }
 
     auto fingerprint =
@@ -273,6 +275,12 @@ main(int argc, char *argv[]){
   struct sockaddr_un my_addr, peer_addr;
   socklen_t peer_addr_size;
 
+restart:
+  if(sfd){
+    close(sfd);
+  }
+  unlink(MY_SOCK_PATH);
+
   sfd = socket(AF_UNIX, SOCK_STREAM, 0);
   if(sfd == -1)
     handle_error("socket");
@@ -286,6 +294,8 @@ main(int argc, char *argv[]){
 
   if(listen(sfd, LISTEN_BACKLOG) == -1)
     handle_error("listen");
+
+  chmod(MY_SOCK_PATH,0765);
 
   boost::asio::io_service ioService;
   boost::thread_group threadpool;

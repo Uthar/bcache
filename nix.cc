@@ -1,5 +1,7 @@
 #include "nix.hh"
 #include "boost/algorithm/string.hpp"
+#include <regex>
+#include <iostream>
 
 static nix::ref<nix::Store> store()
 {
@@ -14,6 +16,9 @@ static nix::ref<nix::Store> store()
 
 std::string queryPathFromHashPart(std::string hashPart){
   try{
+    // if(!std::regex_match(hashPart,std::regex("^([0-9a-z]{32})$"))){
+    //   return "";
+    // }
     auto path = store()->queryPathFromHashPart(hashPart);
     return path.has_value() && path.value().to_string().empty()
       ? ""
@@ -27,6 +32,9 @@ std::string queryPathFromHashPart(std::string hashPart){
 // => ($deriver, $narHash, $time, $narSize, $refs, $sigs)
 std::optional<nix::ref<const nix::ValidPathInfo>>  queryPathInfo(std::string storePath){
   try{
+    // if(!std::regex_match(storePath,std::regex("^[/]nix[/]store[/]([0-9a-z]{32})[-].*$"))){
+    //   return std::nullopt;
+    // }
     return store()->queryPathInfo(store()->parseStorePath(storePath));
   }catch(nix::Error e){
     printf("%s",e.what());
@@ -43,6 +51,14 @@ std::string signString(const char * secretKey, const char * msg){
 // the contents of the path, and the references.
 // sub fingerprintPath {
 std::string fingerprintPath(std::string storePath, std::string narHash, std::string narSize, std::vector<std::string> refs){
+  // auto x = queryPathInfo(storePath);
+  // if(x.has_value()){
+  //   auto info = x.value();
+  //   auto f = info->fingerprint(*store());
+  //   std::cout<<"The Fingerprint: "<<std::endl<<f<<std::endl;
+  //   auto trusted = store()->pathInfoIsUntrusted(*info);
+  //   std::cout<<"Trusted: "<<std::to_string(trusted)<<std::endl;
+  // }
   std::vector<std::string> xs;
   xs.push_back("1");
   xs.push_back(storePath);
