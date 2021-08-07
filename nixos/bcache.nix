@@ -1,29 +1,31 @@
 { config, lib, pkgs,  ... }:
-
 with lib;
-
 let
   cfg = config.services.bcache;
-  bcache = import ../. {};
 in
 {
 
-  options = {
-    services.bcache = {
-      enable = mkEnableOption "simple Nix binary cache server";
+  options.services.bcache = {
+    enable = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        simple Nix binary cache service
+      '';
+    };
 
-      socketPath = mkOption {
-        type = types.string;
-        default = "/run/bcache.sock";
-        description = ''
+    socketPath = mkOption {
+      type = types.string;
+      default = "/run/bcache.sock";
+      description = ''
           Path to unix socket to listen on.
         '';
-      };
+    };
 
-      secretKeyFile = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = ''
+    secretKeyFile = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
           The path to the file used for signing derivation data.
           Generate with:
 
@@ -35,33 +37,30 @@ in
 
           For more details see <citerefentry><refentrytitle>nix-store</refentrytitle><manvolnum>1</manvolnum></citerefentry>.
         '';
+    };
+  };
+
+  config = mkIf cfg.enable {
+    systemd.services.bcache = {
+      after = [ "network.target" ];
+      wantedBy = [ "multi-user.target" ];
+
+      path = [ config.nix.package.out pkgs.bzip2.bin ];
+      environment.NIX_REMOTE = "daemon";
+      environment.NIX_SECRET_KEY_FILE = cfg.secretKeyFile;
+
+      serviceConfig = {
+        Restart = "always";
+        RestartSec = "5s";
+        ExecStart = "${pkgs.bcache}/bin/bcache";
+        User = "nix-serve";
+        Group = "wwwrun";
       };
     };
 
-    config = {
-      systemd.services.bcache = {
-        description = "simple binary cache server";
-        after = [ "network.target" ];
-        wantedBy = [ "multi-user.target" ];
-
-        path = [ config.nix.package.out pkgs.bzip2.bin ];
-        environment.NIX_REMOTE = "daemon";
-        environment.NIX_SECRET_KEY_FILE = cfg.secretKeyFile;
-
-        serviceConfig = {
-          Restart = "always";
-          RestartSec = "5s";
-          ExecStart = "${bcache}/bin/bcache";
-          User = "bcache";
-          Group = "nogroup";
-        };
-      };
-
-      users.users.bcache = {
-        description = "Nix binary cache user";
-        uid = config.ids.uids.bcache;
-      };
+    users.users.bcache = {
+      description = "Nix binary cache user";
+      isSystemUser = true;
     };
-
   };
 }
