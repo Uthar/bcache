@@ -1,3 +1,4 @@
+// FIXME cleanup imports
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <stdlib.h>
@@ -25,6 +26,7 @@
 
 int running=1;
 
+// FIXME just remove when starting when it already exists
 void cleanup(int sig){
   /* When no longer required, the socket pathname, MY_SOCK_PATH
      should be deleted using unlink(2) or remove(3) */
@@ -118,11 +120,13 @@ void handle(int conn){
       }catch(const std::exception &ex){}
     }
 
+    // FIXME just use info->fingerprint(*store())
     auto fingerprint =
       fingerprintPath(storePath,narHash,narSize,refs_long);
     std::cout << fingerprint << std::endl;
 
     if (!secretKey.empty()){
+      // FIXME just nix::SecretKey
       std::string sig = signString(secretKey.c_str(),fingerprint.c_str());
       res.append("Sig: "+sig+"\n");
     }
@@ -178,6 +182,9 @@ void handle(int conn){
     http.append("\r\n");
     write(conn,http.c_str(),http.size());
     std::string cmd="nix dump-path "+storePath;
+    // FIXME use narFromPath with FdSink(conn)
+    // FIXME implement XzSink/GzippedSink/BzippedSink
+    // See serialise.cc, dump-path.cc
     try{
       FILE *dump=popen(cmd.c_str(),"r");
       if(dump){
@@ -200,11 +207,13 @@ void handle(int conn){
   }
 
   else if(std::regex_match(path,std::regex("^[/]nar[/]([0-9a-z]+)[.]nar$"))){
+    // FIXME use regex groups
     std::string hashPart = path.substr(5,32);
     std::cout << hashPart << std::endl;
 
     auto storePath = queryPathFromHashPart(hashPart);
     auto maybeInfo = queryPathInfo(storePath);
+    // FIXME abstract http away
     if(!maybeInfo.has_value()){
       std::string http =
         "HTTP/1.1 404 Not Found\r\n"
@@ -264,6 +273,7 @@ void handle(int conn){
 
 int
 main(int argc, char *argv[]){
+  // FIXME move to init
   signal(SIGINT, &cleanup);
   struct sigaction ignore;
   ignore.sa_handler = ignore_handler;
@@ -275,6 +285,8 @@ main(int argc, char *argv[]){
   struct sockaddr_un my_addr, peer_addr;
   socklen_t peer_addr_size;
 
+  // FIXME remove, possible infinite loop
+  // will be restarted by systemd
 restart:
   if(sfd){
     close(sfd);
@@ -308,13 +320,11 @@ restart:
   }
 
   while(running){
-    /* Now we can accept incoming connections one
-       at a time using accept(2) */
     peer_addr_size = sizeof(struct sockaddr_un);
+    // FIXME add destructor for cfd
     cfd = accept(sfd, (struct sockaddr *) &peer_addr, &peer_addr_size);
     if(cfd == -1)
       handle_error("accept");
-    /* Code to deal with incoming connection(s)... */
     ioService.post(boost::bind(handle,cfd));
   }
 }
