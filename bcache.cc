@@ -1,4 +1,5 @@
 // FIXME cleanup imports
+#include <nix/serialise.hh>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <stdlib.h>
@@ -185,6 +186,8 @@ void handle(int conn){
     // FIXME use narFromPath with FdSink(conn)
     // FIXME implement XzSink/GzippedSink/BzippedSink
     // See serialise.cc, dump-path.cc
+    // auto sink = nix::FdSink(conn);
+    // store()->narFromPath(store()->queryPathFromHashPart(hashPart).value(),sink);
     try{
       FILE *dump=popen(cmd.c_str(),"r");
       if(dump){
