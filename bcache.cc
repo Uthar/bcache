@@ -183,30 +183,13 @@ void handle(int conn){
     http.append("\r\n");
     write(conn,http.c_str(),http.size());
     std::string cmd="nix dump-path "+storePath;
-    // FIXME use narFromPath with FdSink(conn)
-    // FIXME implement XzSink/GzippedSink/BzippedSink
-    // See serialise.cc, dump-path.cc
-    // auto sink = nix::FdSink(conn);
-    // store()->narFromPath(store()->queryPathFromHashPart(hashPart).value(),sink);
     try{
-      FILE *dump=popen(cmd.c_str(),"r");
-      if(dump){
-        int fd = fileno(dump);
-        constexpr std::size_t nbuf = 1024;
-        uint8_t buf[nbuf] ;
-        int nread=0;
-        while((nread = read(fd,buf,nbuf))){
-          if(conn){
-            write(conn,buf,nread);
-            memset(buf,0,nbuf);
-          }
-        }
-        pclose(dump);
-      }
-      close(conn);
+      auto sink = nix::FdSink(conn);
+      store()->narFromPath(store()->queryPathFromHashPart(hashPart).value(),sink);
     }catch(const std::exception &ex){
       perror("writing to socket\n");
     }
+    close(conn);
   }
 
   else if(std::regex_match(path,std::regex("^[/]nar[/]([0-9a-z]+)[.]nar$"))){
@@ -240,25 +223,12 @@ void handle(int conn){
     std::cout << storePath << std::endl;
     std::string cmd="nix dump-path "+storePath;
     try{
-      FILE *dump=popen(cmd.c_str(),"r");
-      if(dump){
-        int fd = fileno(dump);
-        constexpr std::size_t nbuf = 1024;
-        uint8_t buf[nbuf] ;
-        int nread =0;
-        // important, otherwise writin zeros
-        while((nread = read(fd,buf,nbuf))){
-          if(conn){
-            write(conn,buf,nread);
-            memset(buf,0,nbuf);
-          }
-        }
-        pclose(dump);
-      }
-      close(conn);
+      auto sink = nix::FdSink(conn);
+      store()->narFromPath(store()->queryPathFromHashPart(hashPart).value(),sink);
     }catch(const std::exception &ex){
       perror("writing to socket\n");
     }
+    close(conn);
   }
 
 

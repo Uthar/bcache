@@ -8,7 +8,7 @@
 #include "nix/util.hh"
 #include "nix/crypto.hh"
 
-static nix::ref<nix::Store> store();
+nix::ref<nix::Store> store();
 
 std::string queryPathFromHashPart(std::string hashPart);
 
