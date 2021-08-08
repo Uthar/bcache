@@ -192,7 +192,7 @@ void handle(int conn){
         constexpr std::size_t nbuf = 1024;
         uint8_t buf[nbuf] ;
         int nread=0;
-        while(nread = read(fd,buf,nbuf)){
+        while((nread = read(fd,buf,nbuf))){
           if(conn){
             write(conn,buf,nread);
             memset(buf,0,nbuf);
@@ -244,7 +244,7 @@ void handle(int conn){
         uint8_t buf[nbuf] ;
         int nread =0;
         // important, otherwise writin zeros
-        while(nread = read(fd,buf,nbuf)){
+        while((nread = read(fd,buf,nbuf))){
           if(conn){
             write(conn,buf,nread);
             memset(buf,0,nbuf);
