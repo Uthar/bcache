@@ -3,7 +3,7 @@
 #include <regex>
 #include <iostream>
 
-static nix::ref<nix::Store> store()
+nix::ref<nix::Store> store()
 {
   static std::shared_ptr<nix::Store> s;
     if (!s) {
