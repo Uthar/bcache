@@ -2,11 +2,11 @@ with import <nixos> {};
 
 stdenv.mkDerivation {
   pname="bcache";
-  version="0.1.0-f8518f700b";
+  version="0.1.0-20210612-c2e0cffd93";
   src= fetchfossil {
     url = "https://fossil.galkowski.xyz/bcache";
-    rev = "f8518f700b683a5ec5beb870386816d2b1fd3a036a6aad23afb3c50edccb6108";
-    sha256 = "0z9mq60xzw4l08g1bzniqlba2rqaq2f20wfjfd1a2irvkdp2f8w1";
+    rev = "c2e0cffd934fc84006d9e84c249557d091efc8a847c39aeebdafb6abdefd2acc";
+    sha256 = "19ibd7s5rkam70xjga82cfhwdh4ydfxb485y1ngfg2017wsdn7mv";
   };
   buildInputs = [ makeWrapper nixUnstable.dev boost.dev nlohmann_json ];
   preBuild=''
