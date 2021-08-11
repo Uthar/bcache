@@ -1,4 +1,6 @@
+#pragma once
 
+#include <nix/ref.hh>
 #include <string>
 #include "nix/config.h"
 #include "nix/derivations.hh"
@@ -6,6 +8,8 @@
 #include "nix/store-api.hh"
 #include "nix/util.hh"
 #include "nix/crypto.hh"
+
+nix::ref<nix::Store> store();
 
 std::string queryPathFromHashPart(std::string hashPart);
 

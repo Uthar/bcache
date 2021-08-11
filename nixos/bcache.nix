@@ -15,10 +15,18 @@ in
     };
 
     socketPath = mkOption {
-      type = types.string;
-      default = "/run/bcache.sock";
+      type = types.str;
+      default = "/tmp/bcache.sock";
       description = ''
           Path to unix socket to listen on.
+        '';
+    };
+
+    compressionType = mkOption {
+      type = types.enum ["xz" "bzip2" "none" "lz" "gzip"];
+      default = "none";
+      description = ''
+          Type of compression to use
         '';
     };
 
@@ -38,6 +46,22 @@ in
           For more details see <citerefentry><refentrytitle>nix-store</refentrytitle><manvolnum>1</manvolnum></citerefentry>.
         '';
     };
+
+    user = mkOption {
+      type = types.str;
+      default = "bcache";
+      description = ''
+        User to run 'bcache' as
+      '';
+    };
+
+    group = mkOption {
+      type = types.str;
+      default = "bcache";
+      description = ''
+        Group to run 'bcache' as
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -45,22 +69,25 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
 
-      path = [ config.nix.package.out pkgs.bzip2.bin ];
       environment.NIX_REMOTE = "daemon";
       environment.NIX_SECRET_KEY_FILE = cfg.secretKeyFile;
 
       serviceConfig = {
         Restart = "always";
         RestartSec = "5s";
-        ExecStart = "${pkgs.bcache}/bin/bcache";
-        User = "nix-serve";
-        Group = "wwwrun";
+        ExecStart = "${pkgs.bcache}/bin/bcache --socket ${cfg.socketPath} --compression ${cfg.compressionType}";
+        User = cfg.user;
+        Group = cfg.group;
       };
     };
 
-    users.users.bcache = {
-      description = "Nix binary cache user";
+    users.users.${cfg.user} = {
       isSystemUser = true;
     };
+
+    users.groups.${cfg.user} = {
+      members = [ cfg.user ];
+    };
+
   };
 }

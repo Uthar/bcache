@@ -9,10 +9,11 @@ stdenv.mkDerivation {
     sha256 = "0z9mq60xzw4l08g1bzniqlba2rqaq2f20wfjfd1a2irvkdp2f8w1";
   };
   buildInputs = [ makeWrapper nixUnstable.dev boost.dev nlohmann_json ];
+  preBuild=''
+    export MAKEFLAGS="$MAKEFLAGS -j$NIX_BUILD_CORES"
+  '';
   installPhase=''
     mkdir -pv $out/bin
-    cp bcache $out/bin
-    wrapProgram $out/bin/bcache \
-      --prefix PATH ":" ${lib.makeBinPath [ nix ]} 
+    cp -v bcache $out/bin
   '';
 }
