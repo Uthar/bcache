@@ -2,5 +2,5 @@
 with import <nixos> {};
 
 mkShell {
-  buildInputs = [ gcc nixUnstable.dev boost.dev nlohmann_json ];
+  buildInputs = [ gcc nixUnstable.dev boost.dev nlohmann_json zstd ];
 }

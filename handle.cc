@@ -16,6 +16,7 @@
 #include "nix.hh"
 #include "sink.hh"
 #include "config.hh"
+#include "compression.hh"
 
 void handle(int conn){
   uint8_t buf[1000] = {0};
@@ -160,7 +161,7 @@ void handle(int conn){
     auto fdsink = nix::FdSink(conn);
     auto nullsink = nix::NullSink();
     auto altsink = AltSink(fdsink,nullsink);
-    auto zsink = nix::makeCompressionSink(compressionType(),altsink);
+    auto zsink = mkCompressionSink(compressionType(),altsink);
     auto pth = store()->queryPathFromHashPart(hashPart);
     if(pth.has_value()){
       try{

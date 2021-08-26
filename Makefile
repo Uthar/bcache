@@ -9,8 +9,11 @@ handle.o: handle.cc
 config.o: config.cc
 	$(CXX) -std=c++17 -c config.cc -o config.o
 
-bcache: nix.o handle.o config.o bcache.cc
-	$(CXX) -std=c++17 bcache.cc nix.o handle.o config.o -o bcache -lnixstore -lnixutil -lboost_filesystem -lboost_thread -lpthread -lboost_program_options
+compression.o: compression.cc
+	$(CXX) -std=c++17 -c compression.cc -o compression.o
+
+bcache: nix.o handle.o config.o compression.o bcache.cc
+	$(CXX) -std=c++17 bcache.cc nix.o handle.o config.o compression.o -o bcache -lnixstore -lnixutil -lboost_filesystem -lboost_thread -lpthread -lboost_program_options -lzstd
 
 clean:
 	rm -fv bcache *.o

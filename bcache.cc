@@ -44,7 +44,7 @@ main(int argc, char *argv[]){
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "produce help message")
-    ("compression", po::value<std::string>(), "set compression type (bzip2,xz,none,lz)")
+    ("compression", po::value<std::string>(), "set compression type (bzip2,xz,none,lz,zstd)")
     ("socket", po::value<std::string>(), "set path of unix socket");
 
   po::variables_map vm;
