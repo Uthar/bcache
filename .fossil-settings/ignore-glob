@@ -1,0 +1,4 @@
+bcache
+*.o
+result
+.direnv/
